@@ -1,3 +1,6 @@
+.vscode
+
+
 # Prerequisites
 *.d
 
@@ -43,6 +46,7 @@
 build/
 Build/
 build-*/
+demo/build/
 
 # CMake generated files
 CMakeFiles/
