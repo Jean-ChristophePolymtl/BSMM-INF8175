@@ -1,4 +1,4 @@
-#include "model/antenna.h"
+#include "model/Antenna.h"
 
 namespace INF8503::model {
 

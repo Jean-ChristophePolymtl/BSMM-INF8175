@@ -1,6 +1,6 @@
 #pragma once
 
-#include "model/antennaArray.h"
+#include "model/AntennaArray.h"
 #include <raylib.h>
 
 namespace INF8503::render {

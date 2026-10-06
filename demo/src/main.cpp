@@ -1,5 +1,5 @@
-#include "model/antennaArray.h"
-#include "render/renderer.h"
+#include "model/AntennaArray.h"
+#include "render/Renderer.h"
 #include <raylib.h>
 #include <string>
 

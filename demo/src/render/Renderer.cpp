@@ -1,4 +1,4 @@
-#include "render/renderer.h"
+#include "render/Renderer.h"
 
 namespace INF8503::render {
 
@@ -7,6 +7,7 @@ constexpr float ANTENNA_RADIUS{10.0};
 void draw() {}
 
 void drawAntennaArray(const model::AntennaArray array) {
+
   std::vector<model::Antenna> vec = array.getAntennaArray();
   for (auto a : vec) {
     drawAntenna(a);

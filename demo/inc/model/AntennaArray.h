@@ -1,6 +1,6 @@
 #pragma once
 
-#include "model/antenna.h"
+#include "model/Antenna.h"
 #include <iostream>
 #include <vector>
 

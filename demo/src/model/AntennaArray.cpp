@@ -1,4 +1,4 @@
-#include "model/antennaArray.h"
+#include "model/AntennaArray.h"
 
 namespace INF8503::model {
 
@@ -17,7 +17,7 @@ void AntennaArray::createUniformLinearArray(float x, float y, int num,
   }
 
   for (auto i{0}; i < num; i++) {
-    addAntenna(x + i * spacing, y, 0.0, 1.0,
+    addAntenna(x - (spacing * num / 2) + (i * spacing), y, 0.0, 1.0,
                1000.0); // TODO changer les valeurs hard coded
   }
 }
