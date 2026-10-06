@@ -19,6 +19,8 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(raylib)
 
+find_package(Eigen3 REQUIRED)
+
 file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
 add_executable(${PROJECT_NAME}
@@ -31,4 +33,10 @@ target_link_libraries(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE "${PROJECT_SOURCE_DIR}/inc"
+)
+
+
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+    Eigen3::Eigen
 )

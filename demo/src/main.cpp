@@ -1,5 +1,6 @@
 #include "model/AntennaArray.h"
 #include "render/Renderer.h"
+#include <Eigen/Dense>
 #include <raylib.h>
 #include <string>
 
@@ -8,6 +9,8 @@ constexpr int SCREEN_WIDTH{800};
 constexpr int TARGET_FPS{60};
 const std::string WINDOW_NAME{"MIMO Visualizer"};
 constexpr Vector2 CENTER{(float)SCREEN_WIDTH / 2.0, (float)SCREEN_HEIGHT / 2.0};
+
+Eigen::Vector3f v;
 
 INF8503::model::AntennaArray array;
 

@@ -5,6 +5,12 @@ namespace INF8503::model {
 AntennaArray::AntennaArray() {}
 AntennaArray::~AntennaArray() {}
 
+float AntennaArray::getX() const { return this->_x; }
+float AntennaArray::getY() const { return this->_y; }
+
+void AntennaArray::setX(float x) { this->_x = x; }
+void AntennaArray::setY(float y) { this->_y = y; }
+
 std::vector<Antenna> AntennaArray::getAntennaArray() const {
   return this->_antennaArray;
 }

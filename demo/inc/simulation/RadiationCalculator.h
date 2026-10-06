@@ -1,6 +1,8 @@
 #pragma once
 
+#include "constants.h"
 #include "model/AntennaArray.h"
+#include <Eigen/Dense>
 #include <vector>
 
 namespace INF8503::sim {
