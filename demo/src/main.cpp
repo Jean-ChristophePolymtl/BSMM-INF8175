@@ -1,31 +1,39 @@
+#include "constants.h"
+#include "math/Math.h"
 #include "model/AntennaArray.h"
 #include "render/Renderer.h"
+#include "simulation/RadiationCalculator.h"
 #include <Eigen/Dense>
+#include <algorithm>
+#include <cmath>
 #include <raylib.h>
 #include <string>
-
-constexpr int SCREEN_HEIGHT{600};
-constexpr int SCREEN_WIDTH{800};
-constexpr int TARGET_FPS{60};
-const std::string WINDOW_NAME{"MIMO Visualizer"};
-constexpr Vector2 CENTER{(float)SCREEN_WIDTH / 2.0, (float)SCREEN_HEIGHT / 2.0};
 
 Eigen::Vector3f v;
 
 INF8503::model::AntennaArray array;
+INF8503::sim::RadiationCalculator calc;
 
 int main() {
 
-  array.createUniformLinearArray(CENTER.x, CENTER.y, 4, 50.0);
+  array.createUniformRectangularArray(
+      INF8503::constants::CENTER.x, INF8503::constants::CENTER.y, 1, 4,
+      2 * array.getFrequency() / INF8503::constants::LIGHT_SPEED);
 
-  InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_NAME.c_str());
+  InitWindow(INF8503::constants::SCREEN_WIDTH,
+             INF8503::constants::SCREEN_HEIGHT,
+             INF8503::constants::WINDOW_NAME.c_str());
 
-  SetTargetFPS(TARGET_FPS);
+  SetTargetFPS(INF8503::constants::TARGET_FPS);
+
+  std::vector<float> power = calc.calculatePower(array);
 
   while (!WindowShouldClose()) {
     BeginDrawing();
 
     ClearBackground(RAYWHITE);
+
+    INF8503::render::drawPowerPatternDB(INF8503::math::powerVectorToDB(power));
     INF8503::render::drawAntennaArray(array);
 
     EndDrawing();

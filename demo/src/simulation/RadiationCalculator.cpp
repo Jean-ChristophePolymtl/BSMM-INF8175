@@ -1,5 +1,4 @@
 #include "simulation/RadiationCalculator.h"
-#include <vector>
 
 namespace INF8503::sim {
 
@@ -24,10 +23,32 @@ std::vector<float> RadiationCalculator::getAngle() const {
 std::vector<float>
 RadiationCalculator::calculatePower(const model::AntennaArray array) const {
 
-  float k = 2 * constants::PI / constants::LIGHT_SPEED;
-  std::vector<float> vec;
+  float k = (2 * PI * array.getFrequency()) / constants::LIGHT_SPEED;
 
-  return vec;
+  std::vector<model::Antenna> vec = array.getAntennaArray();
+  std::vector<float> power;
+
+  for (auto angle : getAngle()) {
+
+    std::complex<float> sum;
+
+    for (auto ant : vec) {
+      Eigen::Vector2f point_vec{std::cos(DEG2RAD * angle),
+                                std::sin(DEG2RAD * angle)};
+      Eigen::Vector2f distance =
+          math::distanceVector(ant.getPosition(), array.getPosition());
+
+      float theta = -k * distance.dot(point_vec);
+
+      std::complex<float> delta = std::polar(1.0f, theta);
+
+      sum += delta;
+    }
+
+    power.push_back(std::norm(sum));
+  }
+
+  return power;
 }
 
 } // namespace INF8503::sim

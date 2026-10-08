@@ -1,5 +1,8 @@
 #pragma once
 
+#include <Eigen/Dense>
+#include <complex>
+
 namespace INF8503::model {
 
 class Antenna {
@@ -14,6 +17,8 @@ public:
   float getPhase() const;
   float getFrequency() const;
   float getAmplitude() const;
+  std::complex<float> getPhasor() const;
+  Eigen::Vector2f getPosition() const;
 
   void setPosition(float x, float y);
   void setX(float x);
@@ -21,9 +26,14 @@ public:
   void setPhase(float phase);
   void setFrequency(float frequency);
   void setAmplitude(float amplitude);
+  void setPhasor(std::complex<float> phasor);
+  void setPosition(Eigen::Vector2f position);
 
 private:
   float _x, _y;
+
+  Eigen::Vector2f _position;
+  std::complex<float> _phasor;
 
   float _phase;
   float _frequency;

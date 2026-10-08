@@ -7,8 +7,8 @@ Antenna::Antenna()
 
 Antenna::Antenna(float x, float y, float phase, float amplitude,
                  float frequency)
-    : _x{x}, _y{y}, _phase{phase}, _frequency{frequency},
-      _amplitude{amplitude} {}
+    : _x{x}, _y{y}, _phase{phase}, _frequency{frequency}, _amplitude{amplitude},
+      _position{x, y} {}
 
 Antenna::~Antenna() {}
 
@@ -21,6 +21,10 @@ float Antenna::getPhase() const { return this->_phase; }
 float Antenna::getFrequency() const { return this->_frequency; }
 
 float Antenna::getAmplitude() const { return this->_amplitude; }
+
+std::complex<float> Antenna::getPhasor() const { return this->_phasor; }
+
+Eigen::Vector2f Antenna::getPosition() const { return this->_position; }
 
 void Antenna::setPosition(float x, float y) {
   setX(x);
@@ -36,4 +40,11 @@ void Antenna::setPhase(float phase) { this->_phase = phase; }
 void Antenna::setFrequency(float frequency) { this->_frequency = frequency; }
 
 void Antenna::setAmplitude(float amplitude) { this->_amplitude = amplitude; }
+
+void Antenna::setPhasor(std::complex<float> phasor) { this->_phasor = phasor; }
+
+void Antenna::setPosition(Eigen::Vector2f position) {
+  this->_position = position;
+}
+
 } // namespace INF8503::model
