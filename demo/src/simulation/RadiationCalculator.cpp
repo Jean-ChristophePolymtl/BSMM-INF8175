@@ -28,19 +28,21 @@ RadiationCalculator::calculatePower(const model::AntennaArray array) const {
   std::vector<model::Antenna> vec = array.getAntennaArray();
   std::vector<float> power;
 
-  for (auto angle : getAngle()) {
+  for (auto angle : this->_angle) {
 
+    const float angleRad = angle * DEG2RAD;
     std::complex<float> sum;
 
     for (auto ant : vec) {
-      Eigen::Vector2f point_vec{std::cos(DEG2RAD * angle),
-                                std::sin(DEG2RAD * angle)};
+      Eigen::Vector2f direction{std::cos(angleRad), std::sin(angleRad)};
       Eigen::Vector2f distance =
           math::distanceVector(ant.getPosition(), array.getPosition());
 
-      float theta = -k * distance.dot(point_vec);
+      float theta = k * distance.dot(direction);
 
-      std::complex<float> delta = std::polar(1.0f, theta);
+      std::complex<float> delta =
+          /*std::polar(ant.getAmplitude(), ant.getPhase()) */
+          std::polar(1.0f, theta);
 
       sum += delta;
     }

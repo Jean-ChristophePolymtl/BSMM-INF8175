@@ -14,6 +14,6 @@ void drawAntennaArray(const model::AntennaArray);
 void drawAntenna(const model::Antenna a);
 void drawUser();
 void drawRadiationPattern();
-void drawPowerPatternDB(const std::vector<float> power);
+void drawPowerPatternDB(const std::vector<float> power, float scale);
 
 } // namespace INF8503::render

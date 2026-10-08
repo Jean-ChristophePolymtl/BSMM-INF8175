@@ -14,13 +14,15 @@ Eigen::Vector2f polarToCartesian(float radius, float angle,
                                  Eigen::Vector2f center) {
   float angleRad = angle * DEG2RAD;
 
-  return {center[0] + radius * cosf(angle), center[1] - radius * sinf(angle)};
+  return {center[0] + radius * cosf(angleRad),
+          center[1] - radius * sinf(angleRad)};
 }
 
 Vector2 polarToCartesian(float radius, float angle, Vector2 center) {
   float angleRad = angle * DEG2RAD;
 
-  return {center.x + radius * cosf(angle), center.y - radius * sinf(angle)};
+  return {center.x + radius * cosf(angleRad),
+          center.y - radius * sinf(angleRad)};
 }
 
 std::vector<float> powerVectorToDB(std::vector<float> power) {
