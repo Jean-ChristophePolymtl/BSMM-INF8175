@@ -20,7 +20,7 @@ public:
 
   void setX(float x);
   void setY(float y);
-  void setPosition(Eigen::Vector2f pos);
+  void setPosition(const Eigen::Vector2f &pos);
 
   void createUniformLinearArray(float x, float y, int num, float spacing);
 

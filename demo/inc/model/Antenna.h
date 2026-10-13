@@ -10,6 +10,8 @@ class Antenna {
 public:
   Antenna();
   Antenna(float x, float y, float phase, float amplitude, float frequency);
+  Antenna(const Eigen::Vector2f position, const std::complex<float> phasor);
+  Antenna(float x, float y, const std::complex<float> _phasor);
   ~Antenna();
 
   float getX() const;
@@ -26,8 +28,8 @@ public:
   void setPhase(float phase);
   void setFrequency(float frequency);
   void setAmplitude(float amplitude);
-  void setPhasor(std::complex<float> phasor);
-  void setPosition(Eigen::Vector2f position);
+  void setPhasor(const std::complex<float> &phasor);
+  void setPosition(const Eigen::Vector2f &position);
 
 private:
   float _x, _y;
@@ -35,9 +37,9 @@ private:
   Eigen::Vector2f _position;
   std::complex<float> _phasor;
 
+  float _amplitude;
   float _phase;
   float _frequency;
-  float _amplitude;
 };
 
 } // namespace INF8503::model

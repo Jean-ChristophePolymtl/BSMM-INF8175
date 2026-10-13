@@ -3,10 +3,11 @@
 namespace INF8503::render {
 
 constexpr float ANTENNA_RADIUS{0.1};
+constexpr float USER_RADIUS{5.0};
 
 void draw() {}
 
-void drawAntennaArray(const model::AntennaArray array) {
+void drawAntennaArray(const model::AntennaArray &array) {
 
   std::vector<model::Antenna> vec = array.getAntennaArray();
   for (auto a : vec) {
@@ -14,27 +15,42 @@ void drawAntennaArray(const model::AntennaArray array) {
   }
 }
 
-void drawAntenna(const model::Antenna a) {
-  DrawCircle(a.getX(), a.getY(), ANTENNA_RADIUS, GREEN);
+void drawAntenna(const model::Antenna &antenna) {
+  DrawCircle(antenna.getX(), antenna.getY(), ANTENNA_RADIUS, GREEN);
 }
 
-void drawPowerPatternDB(const std::vector<float> power, float scale) {
+void drawUsers(const std::vector<model::User> &users, float scale = 1.0f) {
+
+  for (auto u : users) {
+    drawUser(u, scale);
+  }
+}
+
+void drawUser(const model::User &user, float scale = 1.0f) {
+
+  Vector2 position = math::polarToCartesian(user.getAmplitude() * scale,
+                                            user.getAngle(), constants::CENTER);
+
+  DrawCircle(position.x, position.y, USER_RADIUS, RED);
+}
+
+void drawPowerPatternDB(const std::vector<float> &power, float scale) {
 
   std::vector<Vector2> plot;
   Vector2 center = constants::CENTER;
 
-  for (auto i{0}; i < 360; i++) {
-    Color color = colorGradient(power[i], -50.0f, 0.0f);
-    float t = Clamp(Remap(power[i], -50.0f, 0.0f, 0.0f, 1.0f * scale), 0.0f,
-                    1.0f * scale);
-    Vector2 point = math::polarToCartesian(t, (float)i, center);
+  for (auto i{0}; i < constants::N_ANGLES; i++) {
+
+    float powerToScale = Clamp(
+        Remap(power[i], constants::MIN_DB, constants::MAX_DB, 0.0f, scale),
+        0.0f, scale);
+    Vector2 point = math::polarToCartesian(powerToScale, (float)i, center);
     plot.push_back(point);
-    // DrawLineV(center, point, color);
   }
+
   DrawLineStrip(plot.data(), plot.size(), BLUE);
 }
 
-void drawUser() {}
 void drawRadiationPattern() {}
 
 } // namespace INF8503::render

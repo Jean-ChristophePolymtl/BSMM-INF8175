@@ -2,30 +2,31 @@
 
 namespace INF8503::math {
 
-float distance(Eigen::Vector2f start, Eigen::Vector2f end) {
+float distance(const Eigen::Vector2f &start, const Eigen::Vector2f &end) {
   return (end - start).norm();
 }
 
-Eigen::Vector2f distanceVector(Eigen::Vector2f start, Eigen::Vector2f end) {
+Eigen::Vector2f distanceVector(const Eigen::Vector2f &start,
+                               const Eigen::Vector2f &end) {
   return (end - start);
 }
 
 Eigen::Vector2f polarToCartesian(float radius, float angle,
-                                 Eigen::Vector2f center) {
+                                 const Eigen::Vector2f &center) {
   float angleRad = angle * DEG2RAD;
 
   return {center[0] + radius * cosf(angleRad),
           center[1] - radius * sinf(angleRad)};
 }
 
-Vector2 polarToCartesian(float radius, float angle, Vector2 center) {
+Vector2 polarToCartesian(float radius, float angle, const Vector2 &center) {
   float angleRad = angle * DEG2RAD;
 
   return {center.x + radius * cosf(angleRad),
           center.y - radius * sinf(angleRad)};
 }
 
-std::vector<float> powerVectorToDB(std::vector<float> power) {
+std::vector<float> powerVectorToDB(const std::vector<float> &power) {
 
   std::vector<float> result;
   float maxValue = *std::max_element(power.begin(), power.end());

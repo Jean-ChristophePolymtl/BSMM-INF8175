@@ -10,22 +10,9 @@
 
 namespace INF8503::sim {
 
-class RadiationCalculator {
-public:
-  RadiationCalculator();
-  ~RadiationCalculator();
+std::vector<float>
+calculatePower(const std::vector<model::Antenna> &antennaVec);
 
-  void setPower();
-  void setAngle();
-
-  std::vector<float> getPower() const;
-  std::vector<float> getAngle() const;
-
-  std::vector<float> calculatePower(const model::AntennaArray array) const;
-
-private:
-  std::vector<float> _power;
-  std::vector<float> _angle;
-};
+std::vector<float> calculatePower(const model::AntennaArray &antennaArray);
 
 } // namespace INF8503::sim
