@@ -9,6 +9,10 @@
 
 namespace INF8503::model {
 
+/// @brief
+/// @param lambda
+/// @param distance
+/// @return
 std::complex<float> freeSpaceLOS(float lambda, float distance);
 
 Eigen::MatrixXcf calculateChannelMatrix(const AntennaArray &antennaArray,
