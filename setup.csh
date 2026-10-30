@@ -14,10 +14,7 @@ setenv CONF_HOME ${PROJECT_HOME}/configs
 setenv RESULTS_HOME ${PROJECT_HOME}/results
 
 # HLS
-setenv HLS_HOME ${PROJECT_HOME}/hls_projects
-setenv HLS_TINY ${HLS_HOME}/tiny_l5
-setenv HLS_SMALL ${HLS_HOME}/small_l5
-setenv HLS_MEDIUM ${HLS_HOME}/medium_l5
+setenv HLS_HOME ${PROJECT_HOME}/impl/HLS
 
 # PYTHON COMPILER
 setenv COMPILER_HOME ${PROJECT_HOME}/Pipeline
