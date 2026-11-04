@@ -1,6 +1,6 @@
 open_project -reset bitSerialMatMult
 
-set_top bitSerialMatMult
+set_top bitSerialMatrixMult_top
 
 foreach f [lsort [glob *.cpp]] { if {![string match *_tb.cpp $f]} { add_files $f } }
 

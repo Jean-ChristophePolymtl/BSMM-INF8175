@@ -4,6 +4,10 @@
 
 namespace BSMM{
 
+void bitSerialMatrixMult_top(   ap_int<4> matrixL [2][2], 
+                                ap_int<4> matrixR [2][2], 
+                                ap_int<8> matrixP[2][2]);
+
 template <int M, int K, int N, int L_BITS, int R_BITS>
 void bitSerialMatrixMult(   ap_int<L_BITS> matrixL [M][K], 
                             ap_int<R_BITS> matrixR [K][N], 
