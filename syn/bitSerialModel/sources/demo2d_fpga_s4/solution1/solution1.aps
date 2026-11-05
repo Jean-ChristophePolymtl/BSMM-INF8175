@@ -1,0 +1,17 @@
+<AutoPilot:solution xmlns:AutoPilot="com.autoesl.autopilot.solution">
+    <name>
+        <value string="solution1"/>
+    </name>
+    <project>
+        <value string="demo2d_fpga_s4"/>
+    </project>
+    <flowTarget value="vivado"/>
+    <config>
+        <config_interface m_axi_latency="0"/>
+        <config_schedule effort="medium"/>
+    </config>
+    <clockList>
+        <clock name="default" period="10" default="false"/>
+    </clockList>
+</AutoPilot:solution>
+
