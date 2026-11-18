@@ -1,9 +1,6 @@
 ### 1. Charger les environnements
 
 ```bash
-cd /export/tmp/allaire/bismo
-source setup.csh
-
 cd /export/tmp/allaire/bismo/mMIMO-ART-FPGA/fpga
 source setup.csh
 ```
