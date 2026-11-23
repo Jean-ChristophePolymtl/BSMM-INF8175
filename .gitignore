@@ -71,3 +71,27 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# HLS and Vivado synthesis outputs
+syn/**/solution*/
+impl/**/solution*/
+syn/**/project.cache/
+syn/**/project.gen/
+syn/**/project.hw/
+syn/**/project.ip_user_files/
+syn/**/project.runs/
+syn/**/project.srcs/
+impl/**/project.cache/
+impl/**/project.gen/
+impl/**/project.hw/
+impl/**/project.ip_user_files/
+impl/**/project.runs/
+impl/**/project.srcs/
+syn/**/.Xil/
+impl/**/.Xil/
+syn/**/.autopilot/
+impl/**/.autopilot/
+syn/**/.debug/
+impl/**/.debug/
+syn/**/.jobs/
+impl/**/.jobs/

@@ -1,5 +1,4 @@
-// FFN PARTAGÉ | S=4 D=32 H=128 | U0=8 U1=4 | index L
-#include "bitSerialMatMult.h"
+// FFN NORMAL MATRIX MULT | S=4 D=32 H=128 | U0=8 U1=4 | index L
 #include "ff0.h"
 #include "ff1.h"
 #include "layer_tables.h"
@@ -33,25 +32,23 @@ static void quantize_input_block(const act_t input[kInputSize], ap_int<7> quanti
     }
 }
 
-template <int OutputCount, int InputCount, typename WeightType>
-static void bit_serial_vector_matrix_multiply(
+template <int OutputCount, int InputCount>
+static void normal_vector_matrix_multiply(
     const ap_int<7> input[InputCount],
-    const WeightType weights[OutputCount][InputCount],
-    ap_int<20> result[OutputCount]) {
+    const ap_int<7> weights[OutputCount][InputCount],
+    ap_int<40> result[OutputCount]) {
     for (int output_index = 0; output_index < OutputCount; ++output_index) {
 #pragma HLS PIPELINE II=1
-        ap_int<7> left_matrix[1][InputCount];
-        ap_int<7> right_matrix[InputCount][1];
-        ap_int<20> partial_output[1][1] = {{0}};
+        ap_int<40> partial_sum = 0;
 
         for (int feature_index = 0; feature_index < InputCount; ++feature_index) {
 #pragma HLS UNROLL
-            left_matrix[0][feature_index] = input[feature_index];
-            right_matrix[feature_index][0] = weights[output_index][feature_index];
+            const ap_int<40> product = static_cast<ap_int<40>>(input[feature_index])
+                * static_cast<ap_int<40>>(weights[output_index][feature_index]);
+            partial_sum += product;
         }
 
-        BSMM::bitSerialMatrixMult<1, InputCount, 1, 7, 7, 20>(left_matrix, right_matrix, partial_output);
-        result[output_index] = partial_output[0][0];
+        result[output_index] = partial_sum;
     }
 }
 
@@ -91,7 +88,7 @@ static ap_int<19> requantize_ff1_output(
 
 }  // namespace
 
-void ffn_shared(int L, act_t input[kNumSamples][kInputSize], act_t output[kNumSamples][kOutputSize]) {
+void ffn_shared_normal(int L, act_t input[kNumSamples][kInputSize], act_t output[kNumSamples][kOutputSize]) {
 #pragma HLS ARRAY_RESHAPE variable=ff0_W cyclic factor=32 dim=3
 #pragma HLS ARRAY_PARTITION variable=ff0_W cyclic factor=8 dim=2
 #pragma HLS BIND_STORAGE variable=ff0_W type=rom_2p impl=bram
@@ -109,24 +106,24 @@ void ffn_shared(int L, act_t input[kNumSamples][kInputSize], act_t output[kNumSa
     for (int sample_index = 0; sample_index < kNumSamples; ++sample_index) {
 #pragma HLS PIPELINE II=1
         ap_int<7> quantized_input[kInputSize];
-        ap_int<20> hidden_pre_activation[kHiddenSize];
+        ap_int<40> hidden_pre_activation[kHiddenSize];
 
         quantize_input_block(input[sample_index], quantized_input, F0_THDIN[L]);
-        bit_serial_vector_matrix_multiply<kHiddenSize, kInputSize>(quantized_input, ff0_W[L], hidden_pre_activation);
+        normal_vector_matrix_multiply<kHiddenSize, kInputSize>(quantized_input, ff0_W[L], hidden_pre_activation);
 
         for (int hidden_index = 0; hidden_index < kHiddenSize; ++hidden_index) {
 #pragma HLS UNROLL
             hidden_activation[sample_index][hidden_index] = static_cast<ap_int<7>>(
                 requantize_ff0_output(
-                    hidden_pre_activation[hidden_index],
+                    static_cast<ap_int<20>>(hidden_pre_activation[hidden_index]),
                     ff0_M0[L][hidden_index],
                     ff0_SH[L][hidden_index],
                     ff0_B[L][hidden_index],
                     F0_THDPOS[L]));
         }
 
-        ap_int<20> output_pre_activation[kOutputSize];
-        bit_serial_vector_matrix_multiply<kOutputSize, kHiddenSize>(hidden_activation[sample_index], ff1_W[L], output_pre_activation);
+        ap_int<40> output_pre_activation[kOutputSize];
+        normal_vector_matrix_multiply<kOutputSize, kHiddenSize>(hidden_activation[sample_index], ff1_W[L], output_pre_activation);
 
         for (int output_index = 0; output_index < kOutputSize; ++output_index) {
 #pragma HLS UNROLL

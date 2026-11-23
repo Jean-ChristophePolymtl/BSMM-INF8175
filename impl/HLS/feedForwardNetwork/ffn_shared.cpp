@@ -26,6 +26,26 @@ static ap_int<7> quantize_input_value(const act_t value, const int threshold) {
     return static_cast<ap_int<7>>(shifted_value);
 }
 
+template <int OutputCount, int InputCount>
+static void normal_vector_matrix_multiply(
+    const ap_int<7> input[InputCount],
+    const ap_int<7> weights[OutputCount][InputCount],
+    ap_int<40> result[OutputCount]) {
+    for (int output_index = 0; output_index < OutputCount; ++output_index) {
+#pragma HLS PIPELINE II=1
+        ap_int<40> partial_sum = 0;
+
+        for (int feature_index = 0; feature_index < InputCount; ++feature_index) {
+#pragma HLS UNROLL
+            const ap_int<40> product = static_cast<ap_int<40>>(input[feature_index])
+                * static_cast<ap_int<40>>(weights[output_index][feature_index]);
+            partial_sum += product;
+        }
+
+        result[output_index] = partial_sum;
+    }
+}
+
 static void quantize_input_block(const act_t input[kInputSize], ap_int<7> quantized_input[kInputSize], const int threshold) {
     for (int index = 0; index < kInputSize; ++index) {
 #pragma HLS UNROLL
@@ -107,12 +127,12 @@ void ffn_shared(int L, act_t input[kNumSamples][kInputSize], act_t output[kNumSa
 #pragma HLS ARRAY_PARTITION variable=hidden_activation cyclic factor=128 dim=2
 
     for (int sample_index = 0; sample_index < kNumSamples; ++sample_index) {
-#pragma HLS PIPELINE II=1
         ap_int<7> quantized_input[kInputSize];
-        ap_int<20> hidden_pre_activation[kHiddenSize];
+        ap_int<40> hidden_pre_activation[kHiddenSize];
 
         quantize_input_block(input[sample_index], quantized_input, F0_THDIN[L]);
-        bit_serial_vector_matrix_multiply<kHiddenSize, kInputSize>(quantized_input, ff0_W[L], hidden_pre_activation);
+
+        normal_vector_matrix_multiply<kHiddenSize, kInputSize>(quantized_input, ff0_W[L], hidden_pre_activation);
 
         for (int hidden_index = 0; hidden_index < kHiddenSize; ++hidden_index) {
 #pragma HLS UNROLL

@@ -1,53 +1,13 @@
 // Attention PARTAGÉE | S=4 H=2 HD=16 | U=4 | index couche L
-#include "bitSerialMatMult.h"
 #include "attn_in.h"
 #include "attn_out.h"
 #include "layer_tables.h"
 #include "transformer_top.h"
 #include "int_math.h"
 #include "ap_int.h"
+#include "ap_fixed.h"
 
-namespace {
-
-constexpr int kNumSamples = 4;
-constexpr int kEmbeddingSize = 32;
-constexpr int kQkvSize = 96;
-constexpr int kOutputSize = 32;
-
-ap_int<7> quantize_attention_input(const act_t value, const int threshold) {
-    const ap_int<20> shiftedValue = (value + 4) >> 3;
-
-    if (shiftedValue > threshold) {
-        return static_cast<ap_int<7>>(threshold);
-    }
-    if (shiftedValue < -threshold) {
-        return static_cast<ap_int<7>>(-threshold);
-    }
-
-    return static_cast<ap_int<7>>(shiftedValue);
-}
-
-ap_int<20> requantize_projection_output(
-    const ap_int<20> accumulator,
-    const int scaleFactor,
-    const int shiftValue,
-    const int bias) {
-    const ap_int<36> scaledValue =
-        static_cast<ap_int<36>>(accumulator) * static_cast<ap_uint<17>>(scaleFactor);
-    ap_int<20> result = (shiftValue > 0)
-        ? static_cast<ap_int<20>>(
-              (scaledValue + (static_cast<ap_int<36>>(1) << (shiftValue - 1)))
-              >> shiftValue)
-        : static_cast<ap_int<20>>(scaledValue);
-
-    result += bias;
-    return result;
-}
-
-}  // namespace
-
-void attention_shared(int L, act_t input[kNumSamples][kEmbeddingSize],
-                      act_t output[kNumSamples][kEmbeddingSize]) {
+void attention_shared(int L, act_t input[4][32], act_t output[4][32]) {
 #pragma HLS ARRAY_RESHAPE variable=attn_in_W cyclic factor=32 dim=3
 #pragma HLS ARRAY_PARTITION variable=attn_in_W cyclic factor=4 dim=2
 #pragma HLS BIND_STORAGE variable=attn_in_W type=rom_2p impl=bram
@@ -57,33 +17,39 @@ void attention_shared(int L, act_t input[kNumSamples][kEmbeddingSize],
 #pragma HLS ARRAY_PARTITION variable=attn_out_W cyclic factor=4 dim=2
 #pragma HLS BIND_STORAGE variable=attn_out_M0 type=rom_1p impl=lutram
 #pragma HLS BIND_STORAGE variable=attn_out_SH type=rom_1p impl=lutram
-    act_t qkv[kNumSamples][kQkvSize];
-    ap_int<7> ctx_q[kNumSamples][kEmbeddingSize];
+    act_t qkv[4][96];
+    ap_int<7> ctx_q[4][32];
 #pragma HLS ARRAY_PARTITION variable=qkv   cyclic factor=16 dim=2
 #pragma HLS ARRAY_PARTITION variable=ctx_q cyclic factor=32 dim=2
 
-    for (int sampleIndex = 0; sampleIndex < kNumSamples; ++sampleIndex) {
-        ap_int<7> quantizedInput[kEmbeddingSize];
-        ap_int<20> qkvAccumulator[kQkvSize];
-
-        for (int featureIndex = 0; featureIndex < kEmbeddingSize; ++featureIndex) {
+    M_attn_in: for (int s = 0; s < 4; s++)
+      for (int ii = 0; ii < 96; ii += 4) {
+#pragma HLS PIPELINE II=1
+        for (int u = 0; u < 4; u++) {
 #pragma HLS UNROLL
-            quantizedInput[featureIndex] =
-                quantize_attention_input(input[sampleIndex][featureIndex], A_THDIN[L]);
-        }
-
-        BSMM::bitSerialVectorMatrixMult<kQkvSize, kEmbeddingSize, 7, 7, 20>(
-            quantizedInput, attn_in_W[L], qkvAccumulator);
-
-        for (int qkvIndex = 0; qkvIndex < kQkvSize; ++qkvIndex) {
+          ap_int<20> acc = 0;
+          for (int j0 = 0; j0 < 1; j0++)
+            for (int jp = 0; jp < 32; jp++) {
 #pragma HLS UNROLL
-            qkv[sampleIndex][qkvIndex] = requantize_projection_output(
-                qkvAccumulator[qkvIndex],
-                attn_in_M0[L][qkvIndex],
-                attn_in_SH[L][qkvIndex],
-                attn_in_B[L][qkvIndex]);
+              int j = j0*32 + jp;
+              if (j < 32) {
+              ap_int<20> xw_ = input[s][j];
+              ap_int<20> xm_ = (xw_ + 4) >> 3;
+              int th_ = A_THDIN[L];
+              ap_int<7> xv = xm_ >  th_ ? (ap_int<7>)th_
+                        : (xm_ < -th_ ? (ap_int<7>)(-th_) : (ap_int<7>)xm_);
+              acc += (ap_int<20>)attn_in_W[L][ii+u][j] * xv;
+              }
+            }
+          ap_int<36> tmp = (ap_int<36>)acc * (ap_uint<17>)attn_in_M0[L][ii+u];
+          int shv = attn_in_SH[L][ii+u];
+          ap_int<20> y = (shv > 0)
+              ? (ap_int<20>)((tmp + ((ap_int<36>)1 << (shv-1))) >> shv)
+              : (ap_int<20>)tmp;
+          y += attn_in_B[L][ii+u];
+          qkv[s][ii+u] = y;
         }
-    }
+      }
 
     // ═══ SDP entier partagé : M0s/SHs et thd_ctx indexés par L ═══
     ap_int<38> sc[2][4][4];
@@ -145,18 +111,28 @@ void attention_shared(int L, act_t input[kNumSamples][kEmbeddingSize],
           }
         }
 
-    for (int sampleIndex = 0; sampleIndex < kNumSamples; ++sampleIndex) {
-        ap_int<20> outputAccumulator[kOutputSize];
-        BSMM::bitSerialVectorMatrixMult<kOutputSize, kEmbeddingSize, 7, 7, 20>(
-            ctx_q[sampleIndex], attn_out_W[L], outputAccumulator);
-
-        for (int outputIndex = 0; outputIndex < kOutputSize; ++outputIndex) {
+    M_attn_out: for (int s = 0; s < 4; s++)
+      for (int ii = 0; ii < 32; ii += 4) {
+#pragma HLS PIPELINE II=1
+        for (int u = 0; u < 4; u++) {
 #pragma HLS UNROLL
-            output[sampleIndex][outputIndex] = requantize_projection_output(
-                outputAccumulator[outputIndex],
-                attn_out_M0[L][outputIndex],
-                attn_out_SH[L][outputIndex],
-                attn_out_B[L][outputIndex]);
+          ap_int<20> acc = 0;
+          for (int j0 = 0; j0 < 1; j0++)
+            for (int jp = 0; jp < 32; jp++) {
+#pragma HLS UNROLL
+              int j = j0*32 + jp;
+              if (j < 32) {
+              ap_int<7> xv = ctx_q[s][j];
+              acc += (ap_int<20>)attn_out_W[L][ii+u][j] * xv;
+              }
+            }
+          ap_int<36> tmp = (ap_int<36>)acc * (ap_uint<17>)attn_out_M0[L][ii+u];
+          int shv = attn_out_SH[L][ii+u];
+          ap_int<20> y = (shv > 0)
+              ? (ap_int<20>)((tmp + ((ap_int<36>)1 << (shv-1))) >> shv)
+              : (ap_int<20>)tmp;
+          y += attn_out_B[L][ii+u];
+          output[s][ii+u] = y;
         }
-    }
+      }
 }
