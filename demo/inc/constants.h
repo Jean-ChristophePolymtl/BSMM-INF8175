@@ -21,7 +21,7 @@ const Eigen::Vector2f CENTER_EIGEN{(float)SCREEN_WIDTH / 2.0,
 constexpr auto MAX_DB{0.0f};
 constexpr auto MIN_DB{-50.0f};
 
-constexpr auto N_ANGLES{180};
+constexpr auto N_ANGLES{360};
 
 const std::vector<float> ANGLES_RAD = [] {
   std::vector<float> result(N_ANGLES);

@@ -28,8 +28,14 @@ void drawUsers(const std::vector<model::User> &users, float scale = 1.0f) {
 
 void drawUser(const model::User &user, float scale = 1.0f) {
 
-  Vector2 position = math::polarToCartesian(user.getAmplitude() * scale,
-                                            user.getAngle(), constants::CENTER);
+  // Vector2 position = math::polarToCartesian(user.getAmplitude() * scale,
+  //                                          user.getAngle(),
+  //                                          constants::CENTER);
+
+  Vector2 position;
+
+  position.x = user.getPosition()[0];
+  position.y = user.getPosition()[1];
 
   DrawCircle(position.x, position.y, USER_RADIUS, RED);
 }
